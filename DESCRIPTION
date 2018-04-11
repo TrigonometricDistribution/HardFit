@@ -14,3 +14,10 @@ Author: Lucas Gallindo <lgallindo@gmail.com>
 NeedsCompilation: no
 RoxygenNote: 5.0.1
 Suggests: testthat
+Imports: 
+    CosW,
+    SecKW,
+    SinIW,
+    TanB
+Remotes:  
+    TrigonometricDistribution/CosW
