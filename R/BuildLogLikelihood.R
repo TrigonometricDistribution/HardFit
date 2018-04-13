@@ -10,7 +10,7 @@ BuildLogLikelihood <- function (pdf, data) {
   # The pdf has a log.p parameter?
   if (any(names(formals(pdf))=="log")) {
     retVal <- function (...) {
-      return(sum(pdf(data, log=TRUE, ...)))
+      return(sum(pdf(data, log = TRUE, ...)))
     }
   } else {
     retVal <- function (...) {

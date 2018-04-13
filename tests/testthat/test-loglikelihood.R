@@ -1,4 +1,4 @@
-context("BuildLogLikelihood")
+context("test_loglikelihood")
 
 dset <- 1:3
 # Not really a fdp, just an ++ function.
