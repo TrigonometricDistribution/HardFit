@@ -93,3 +93,8 @@ tmp <- hist(
 # Boxplot of observed data
 boxplot(interarrivals,col='cyan',border='blue',horizontal=TRUE,xlab='Minutes',
         main='Interarrival times')
+
+
+URL<-"https://raw.githubusercontent.com/Lionel68/Jena_Exp/master/stats/ToLog_function.R"
+download.file(URL,destfile=paste0(getwd(),"/ToLog_function.R"),method="curl")
+source("ToLog_function.R")
