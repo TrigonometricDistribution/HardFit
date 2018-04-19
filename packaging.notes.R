@@ -60,6 +60,7 @@ usethis::use_test("build_trig_loglikelihood")
 usethis::use_test("loglikelihood")
 usethis::use_test("fit_poisson")
 usethis::use_test("fit_CosW")
+usethis::use_test("luciano-sinape2018")
 
 # Test count data
 # Reference dataset from: https://web.archive.org/web/20180413222159/https://www.r-bloggers.com/estimating-arrival-times-of-people-in-a-shop-using-r/
