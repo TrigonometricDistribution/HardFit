@@ -5,7 +5,6 @@ test_that("multiplication works", {
 })
 
 require(pracma)
-require(stats)
 #Cot Gumbel
 
 GG <- function(x, alpha, beta){
@@ -117,19 +116,18 @@ hist(speed)
 
 
 
-pdf_CotGumb=function(x,alpha,beta){
+pdf_CotGumb <- function(x, alpha, beta){
   -(2/3)*pi*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
 }
 
-
-cdf_CotGumbfunction(x,alpha,beta){
+cdf_CotGumb <- function(x, alpha, beta) {
   sec((1/3)*pi*(1-exp(-exp((x-alpha)/beta))))-1
 }
 
 
 #            Cos Weibull - pdf distribution function.
 
-pdf_cotG <- function(par,x){
+pdf_cotG <- function(par, x){
   alpha      = par[1]
   beta       = par[2]
   -(2/3)*pi*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
@@ -141,9 +139,20 @@ cdf_cotG <- function(par,x){
   beta       = par[2]
   sec((1/3)*pi*(1-exp(-exp((x-alpha)/beta))))-1
 }
-p4=goodness.fit(pdf=pdf_cotG, cdf=cdf_cotG, starts =c(1, 1), data = x, method="S",  domain=c(0,Inf),mle=NULL)
-mle4=p4$mle
-aic4=p4$AIC
+
+p4 <- goodness.fit(
+  pdf = pdf_cotG
+  ,cdf = cdf_cotG
+  ,starts = c(1, 1)
+  ,data = x
+  ,method = "S"
+  ,domain = c(0, Inf)
+  ,mle = NULL
+)
+
+mle4 <- p4$mle
+
+aic4 <- p4$AIC
 
 
 

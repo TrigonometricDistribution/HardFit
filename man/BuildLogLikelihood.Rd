@@ -7,7 +7,7 @@
 BuildLogLikelihood(pdf, data)
 }
 \arguments{
-\item{pdf}{A probability density function that expects a pair (x, theta) and perhaps a log.p value.}
+\item{pdf}{A probability density function that expects a pair (x, theta) and perhaps a log flag.}
 
 \item{data}{A vector of data.}
 
@@ -19,4 +19,3 @@ A log-likelihood function expecting a parameter vector.
 \description{
 Builds a log-likelihood function for a given pair of pdf and data.
 }
-

@@ -12,7 +12,7 @@ BugReports: https://github.com/TrigonometricDistribution/HardFit/issues
 License: GPL (>= 3)
 Author: Lucas Gallindo <lgallindo@gmail.com>
 NeedsCompilation: no
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Suggests: 
     testthat,
     ctv
