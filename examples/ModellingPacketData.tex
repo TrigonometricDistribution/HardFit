@@ -1,0 +1,49 @@
+\documentclass{article}
+
+% Configurando linguagem
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+
+% For \url
+\usepackage{hyperref}
+
+% Ambiente \description
+\usepackage{enumitem}
+
+% Cores para código
+\usepackage{xcolor}
+\definecolor{codegray}{gray}{0.9}
+\newcommand{\code}[1]{\colorbox{codegray}{\texttt{#1}}}
+
+% Informações de contato para o fim do texto.
+\title{Modelando \emph{Packet Data} usando Distribuições Trigonométricas}
+
+\author{Luciano Serafim \and Lucas Gallindo \and Luciano Souza}
+
+\newcommand{\Addresses}{{% additional braces for segregating \footnotesize
+  \bigskip
+  \footnotesize
+
+  L.~Serafim, \textsc{Department of Mathematics, Pennsylvania State University,
+    Pittsburgh, Pennsylvania 13593}\par\nopagebreak
+  \textit{E-mail address:} \texttt{lucianoserafimdesouza@gmail.com}
+
+\medskip
+
+  L.~Gallindo (Corresponding author), \textsc{Atmospheric Research Station,
+    Pala Lundi, Fiji}\par\nopagebreak
+  \textit{E-mail address:} \texttt{lgallindo@gmail.com}
+
+\medskip
+
+  L.~Souza, \textsc{Department of Philosophy, Freedman College,
+    Periwinkle, Colorado 84320}\par\nopagebreak
+  \textit{E-mail address:} \texttt{lcnsza@gmail.com}
+
+}}
+
+\usepackage{Sweave}
+\begin{document}
+\input{ModellingPacketData-concordance}
+

@@ -1,3 +1,14 @@
+#' Does lots of crap.
+#' @export
+#' 
+#' @param pdf A probability density function.
+#' @param pdf .
+#' @param starts .
+#' @param data .
+#' @param method .
+#' @param domain .
+#' 
+#' @return Lots of crap.
 goodness.fit <-
 function(pdf, cdf, starts, data, method = "PSO", domain = c(0,Inf),
                          mle = NULL,...){

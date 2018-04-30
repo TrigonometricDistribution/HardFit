@@ -1,0 +1,312 @@
+\documentclass{article}
+
+% Configurando linguagem
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+
+% For \url
+\usepackage{hyperref}
+
+% Ambiente \description
+\usepackage{enumitem}
+
+% Cores para código
+\usepackage{xcolor}
+\definecolor{codegray}{gray}{0.9}
+\newcommand{\code}[1]{\colorbox{codegray}{\texttt{#1}}}
+
+% Informações de contato para o fim do texto.
+\title{Modelando \emph{Packet Data} usando Distribuições Trigonométricas}
+
+\author{Luciano Serafim \and Lucas Gallindo \and Luciano Souza}
+
+\newcommand{\Addresses}{{% additional braces for segregating \footnotesize
+  \bigskip
+  \footnotesize
+
+  L.~Serafim, \textsc{Department of Mathematics, Pennsylvania State University,
+    Pittsburgh, Pennsylvania 13593}\par\nopagebreak
+  \textit{E-mail address:} \texttt{lucianoserafimdesouza@gmail.com}
+
+\medskip
+
+  L.~Gallindo (Corresponding author), \textsc{Atmospheric Research Station,
+    Pala Lundi, Fiji}\par\nopagebreak
+  \textit{E-mail address:} \texttt{lgallindo@gmail.com}
+
+\medskip
+
+  L.~Souza, \textsc{Department of Philosophy, Freedman College,
+    Periwinkle, Colorado 84320}\par\nopagebreak
+  \textit{E-mail address:} \texttt{lcnsza@gmail.com}
+
+}}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<Initialization, echo=false , results=hide>>=
+# Se não existe uma variável "anarchy.data", carregue uma.
+if (!exists("anarchy.data")) {
+  load(paste0(getwd(),"/../data/anarchy.data.rda"))
+}
+library(pracma)
+library(stats4)
+@
+
+\maketitle
+
+%----------------------------------------------------------------------------------------
+%	RESUMO EM PORTUGUES
+%----------------------------------------------------------------------------------------
+\begin{abstract}
+
+\noindent
+
+Blablabla.
+
+\smallskip
+\noindent \textbf{Categories and Subject Descriptors:} Sistemas de Informação Multimídia.\\
+\noindent \textbf{General Terms:} Medição.\\
+\noindent \textbf{Palavras-chave:} Distribuições Trigonométricas, Modelagem Probabilística, Rastreio de Pacotes, Comportamento de Tráfego de Jogos.
+
+\end{abstract}
+
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT IN ENGLISH
+%----------------------------------------------------------------------------------------
+{
+%\selectlanguage{english}
+\begin{abstract}
+
+\noindent
+
+We model the probability distribution of packet trace data collected by
+\cite{petlund2012network}. The data comes from multiplayer online roleplaying game
+(MMORPG) server that provides multimedia content to users. Analysis is done using
+open-form - unsuitable for most standard statistical analyses - empirical distributions,
+gaussian distributions and trigonometric distributions. The analysis is done using the
+standard R language \cite{Rlanguage2016} and packages distributed via GitHub \cite{SecKW,
+TanB, CosW, SinIW}.
+
+\smallskip
+\noindent \textbf{Categories and Subject Descriptors:} Multimedia Information Systems.\\
+\noindent \textbf{General Terms:} Measurement.\\
+\noindent \textbf{Keywords:} Trigonometric Distributions, Probabilistic Modelling, Packet Trace, Game Traffic Behaviour.
+
+\end{abstract}
+}
+
+\section{Introduction}
+
+Os dados vem de \cite{petlund2012network}, e foram agregados usando o software Wireshark \cite{combs2016wireshark}, opções \code{Statistics->Conversations}, aba \code{IPv4}.
+
+\section{The Data}
+
+Os dados estão armazenados na variável \code{anarchy.data}, sendo que cada linha representa uma conversação. As variáveis são:
+\begin{description}[align=left]
+  \item [Address.A] Primeiro endereço da conversação.
+  \item [Address.B] Segundo endereço da conversação.
+  \item [Packets] Volume, em pacotes da conversação.
+  \item [Bytes] Volume, em bytes da conversação.
+  \item [Packets.A...B] Volume, em pacotes no sentido A->B.
+  \item [Bytes.A...B] Volume, em pacotes no sentido A->B.
+  \item [Packets.B...A] Volume, em pacotes no sentido B->A.
+  \item [Bytes.B...A] Volume, em pacotes no sentido B->A.
+  \item [Rel.Start] Instante de início da conversação.
+  \item [Duration] Duração da conversação.
+  \item [Bits.s.A...B] Velocidade, em bits por segundo, no sentido A->B.
+  \item [Bits.s.B...A] Velocidade, em bits por segundo, no sentido B->A.
+\end{description}
+
+Queremos estudar a distribuição, em termos de probabilidade, das colunas \code{Packets} e \code{Bytes}, que contém o tamanho de conversações em número de pacotes e em bytes trafegados. As estatísticas básicas destas variáveis estão abaixo.
+<<>>=
+selected.vars<-anarchy.data[,c(3,4,10)]
+summary(selected.vars)
+@
+\begin{figure}[ht!]
+  \centering
+<<fig=TRUE>>=
+library(PerformanceAnalytics)
+chart.Correlation(selected.vars)
+@
+  \caption{Densidade empírica das variáveis selecionadas (incluindo suavização), diagramas de dispersão e correlação entre variáveis. O fator relevante para a análise desejada são os gráficos da diagonal, que mostram o histograma das variáveis em estudo. Nota-se o decaimento exponencial na variável \code{Packets}, o decaimento mais lento da variável \code{Bytes} e a bimodalidade da variável \code{Duration}.}
+  \label{fig:correlacao}
+\end{figure}
+
+\section{Model Comparison}
+
+As variáveis serão analisadas individualmente, sendo a interação entre elas deixada para estudos futuros. Vamos modelar as variáveis usando o histograma, a densidade baseada em kernel, as funções de densidade definidas nos pacotes cite{SecKW,
+TanB, CosW, SinIW} e a densidade gaussiana padrão. A estimação será realizada usando a biblioteca \code{stats4}, incluída na instalação padrão do R \cite{Rlanguage2016}.
+
+O processo de estimação dos parâmetros está descrito abaixo. Inicialmente, instalamos os pacotes com distribuições:
+<<eval=FALSE>>=
+# Vamos instalar pacotes direto do GitHub. Isso é facilitado pelo pacote devtools.
+install.packages("devtools")
+library(devtools)
+# Instalando os pacotes. Estes comandos só precisam ser usados uma vez.
+install_github("lgallindo/SecKW")
+install_github("lgallindo/TanB")
+install_github("lgallindo/CosW")
+install_github("lgallindo/SinIW")
+@
+Carregamos os pacotes.
+<<>>=
+library("SecKW")
+library("TanB")
+library("CosW")
+library("SinIW")
+@
+Vamos construir, para cada combinação variável/distribuição, uma função de log-verossimilhança.
+<<>>=
+# Incluindo todos os elementos do objeto selected.vars no namespace padrão
+attach(selected.vars)
+# Construindo funções de verossimilhança para cada variável
+ll_SecKW_Packets <- function(a, b, c, d) {
+  R <- dseckw(Packets, a, b, c, d)
+  return(-sum(log(R)))
+}
+ll_SecKW_Bytes <- function(a, b, c, d) {
+  R <- dseckw(Bytes, a, b, c, d)
+  return(-sum(log(R)))
+}
+ll_SecKW_Duration <- function(a, b, c, d) {
+  R <- dseckw(Duration, a, b, c, d)
+  return(-sum(log(R)))
+}
+ll_TanB_Packets <- function(a, b, c) {
+  R <- dtanb(Packets, a, b, c)
+  return(-sum(log(R)))
+}
+ll_TanB_Bytes <- function(a, b, c) {
+  R <- dtanb(Bytes, a, b, c)
+  return(-sum(log(R)))
+}
+ll_TanB_Duration <- function(a, b, c) {
+  R <- dtanb(Duration, a, b, c)
+  return(-sum(log(R)))
+}
+ll_CosW_Packets <- function(a, b) {
+  R <- dcosw(Packets, a, b)
+  return(-sum(log(R)))
+}
+ll_CosW_Bytes <- function(a, b) {
+  R <- dcosw(Bytes, a, b)
+  return(-sum(log(R)))
+}
+ll_CosW_Duration <- function(a, b) {
+  R <- dcosw(Duration, a, b)
+  return(-sum(log(R)))
+}
+ll_SinIW_Packets <- function(a, b) {
+  R <- dsiniw(Packets, a, b)
+  return(-sum(log(R)))
+}
+ll_SinIW_Bytes <- function(a, b) {
+  R <- dsiniw(Bytes, a, b)
+  return(-sum(log(R)))
+}
+ll_SinIW_Duration <- function(a, b) {
+  R <- dsiniw(Duration, a, b)
+  return(-sum(log(R)))
+}
+@
+Agora que a infra-estrutura, vamos analisar variável-a-variável. Para cada variável, vamos escolher um valor arbitrário como chute inicial dos parâmetros e testar se a função de verossimilhança está definida naquele ponto. Se estiver, usamos a função \code{stats4::mle} para estimar os parâmetros. Para a variável \code{Packets}:
+<<PacketDistributionAnalysis>>=
+# Analisando Packets
+mean.Packets <- mean(Packets, na.rm = T)
+sd.Packets <- sd(Packets, na.rm = T)
+max.Packets <- max(Packets, na.rm = T)
+@
+\begin{figure}[ht!]
+  \centering
+<<fig=TRUE>>=
+hist(
+  Packets, freq = F, xlab = 'Link Frequency',
+  ylab = 'Probability', main = 'Histogram of Packets Data with Kernel
+  Density Plot and Normal Plot')
+
+lines(density(Packets, na.rm = T, from = 0, to = max.Packets), col="green")
+curve(dnorm(x, mean = mean.Packets, sd = sd.Packets), add = T, col="red")
+@
+  \caption{}
+  \label{fig:}
+\end{figure}
+
+Usando a distribuição \code{SecKW}:
+<<SecKWPacketEstimation>>=
+# Distribuição SecKW
+guesstimateSecKWpackets <- list(a=125, b=1, c=0.1, d=5500) # For TanB
+# A função de verossimilhança está definida nesse ponto?
+ll_SecKW_Packets(guesstimateSecKWpackets$a, guesstimateSecKWpackets$b, guesstimateSecKWpackets$c, guesstimateSecKWpackets$d)
+# Estimando parâmetros
+seckw_mle_packets <-  mle(ll_SecKW_Packets, start = guesstimateSecKWpackets, method="L-BFGS-B", fixed = list(b = 1, c=0.1), lower=c(0,0,0,0), control=list(trace=6))
+# curve(dseckw(x, a = seckw_mle_packets@details$par[1], b = seckw_mle_packets@details$par[2], c = seckw_mle_packets@details$par[3], lambda = seckw_mle_packets@details$par[4]), from=0, to=35000, add = T, col="blue")
+seckw_mle_packets
+@
+Usando a distribuição \code{TanB}:
+<<TanBPacketEstimation>>=
+# Distribuição TanB
+guesstimateTanBpackets <- list(a=1.5, b=0.5, c=1000) # For TanB
+# A função de verossimilhança está definida nesse ponto?
+ll_TanB_Packets(guesstimateTanBpackets$a, guesstimateTanBpackets$b, guesstimateTanBpackets$c)
+# Estimando parâmetros
+tanb_mle_packets <-  mle(ll_TanB_Packets, start = guesstimateTanBpackets, method="L-BFGS-B", lower=c(0,0,0), control=list(trace=6))
+curve(dtanb(x, c = tanb_mle_packets@details$par[1], k = tanb_mle_packets@details$par[2], s = tanb_mle_packets@details$par[3]), add = T, col="blue")
+tanb_mle_packets
+@
+Usando a distribuição \code{CosW}:
+<<CosWPacketEstimation>>=
+# Distribuição CosW
+guesstimateCosWpackets <- list(a=0.1, b=0.1) # For TanB
+# A função de verossimilhança está definida nesse ponto?
+ll_CosW_Packets(guesstimateCosWpackets$a, guesstimateCosWpackets$b)
+# Estimando parâmetros
+# , fixed = list(b = 1)
+# cosw_mle_packets <-  mle(ll_CosW_Packets, start = guesstimateCosWpackets, method="L-BFGS-B", lower=c(0,0), control=list(trace=6))
+# curve(dcosw(x, alpha = cosw_mle_packets@details$par[1], lambda = cosw_mle_packets@details$par[2]), add = T, col="gray")
+# cosw_mle_packets
+@
+
+
+
+<<hide=TRUE>>=
+# guesstimateTanBpackets <- list(a=10, b=1, c=1) # For TanB
+# guesstimateCosWpackets <- list(a=0.1, b=0.10) # For CosW
+# guesstimateSinIWpackets <- list(a=10, b=1) # For CosW
+
+
+
+# ll_CosW_Packets(guesstimateCosW$a, guesstimateCosW$b)
+@
+
+
+<<>>=
+# Estimando os parâmetros das distribuições
+
+# ll_SecKW_Packets(guesstimateSecKW$a, guesstimateSecKW$b, guesstimateSecKW$c, guesstimateSecKW$d)
+# seckw_mle_packets <- mle(ll_SecKW_Packets, start = guesstimateSeKW, method="L-BFGS-B", lower=c(0,0,0,0), control=list(trace=6, parscale=c(1,1,1,1)))
+# seckw_mle_bytes <- mle(ll_SecKW_Bytes, start = guesstimateSeKW)
+# seckw_mle_duration <- mle(ll_SecKW_Duration, start = guesstimateSeKW)
+
+# tanb_mle_packets <- mle(ll_TanB_Packets, start = guesstimateTanB)
+# # tanbw_mle_bytes <- mle(ll_TanB_Bytes, start = guesstimateTanB)
+# tanbw_mle_duration <- mle(ll_TanB_Duration, start = guesstimateTanB)
+# cosw_mle_packets <- mle(ll_CosW_Packets, start = guesstimateCosW)
+# cosw_mle_bytes <- mle(ll_CosW_Bytes, start = guesstimateCosW)
+# cosw_mle_duration <- mle(ll_CosW_Duration, start = guesstimateCosW)
+# siniw_mle_packets <- mle(ll_SinIW_Packets, start = guesstimateSinIW)
+# siniw_mle_bytes <- mle(ll_SinIW_Bytes, start = guesstimateSinIW)
+# siniw_mle_duration <- mle(ll_SinIW_Duration, start = guesstimateSinIW)
+@
+
+\pagebreak
+% inclusão de referências utilizando BibTeX
+\bibliographystyle{apalike}
+\bibliography{TrigDistr}
+
+\Addresses
+
+\end{document}

@@ -19,7 +19,7 @@ alpha3 <- 4.0;   beta3 <- 1.0;  #pink
 alpha4 <- 1.0;   beta4 <- 0.5;  #brown
 
 curve(
-  GG(x, alpha,beta)
+  GG(x, alpha, beta)
   ,col = "black"
   ,cex.lab = 0.9
   ,cex.main = 0.5
@@ -114,8 +114,6 @@ hist(speed)
 
 #x=speed; x=temp
 
-
-
 pdf_CotGumb <- function(x, alpha, beta){
   -(2/3)*pi*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
 }
@@ -130,7 +128,8 @@ cdf_CotGumb <- function(x, alpha, beta) {
 pdf_cotG <- function(par, x){
   alpha      = par[1]
   beta       = par[2]
-  -(2/3)*pi*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
+  # -(2/3)*pi*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
+  -(2*pi/3)*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((pi/3)*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((pi/3)*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
 }
 
 #         Cos Weibull- Cumulative distribution function.
@@ -139,6 +138,41 @@ cdf_cotG <- function(par,x){
   beta       = par[2]
   sec((1/3)*pi*(1-exp(-exp((x-alpha)/beta))))-1
 }
+
+starts <- c(1, 1)
+
+# likelihood <- function(par, x){
+#   -sum(log(pdf_cotG(par, x)))
+# }
+
+likelihood <- function(par, x){
+  -sum(log(dcotg(par, x)))
+}
+
+opt1 <- optim(
+  par = starts
+  ,fn = likelihood
+  ,x  = x
+  ,method  = "SANN"
+  ,hessian = TRUE
+)
+
+# Get many SANN seeds, apply more orthodox methods on each one.
+numSeeds <- 3
+# optOut <- vector(mode = "double", length = numSeeds)
+optOut <- NULL
+for(i in 1:numSeeds) {
+  optOut <- list(optOut
+    ,optim(
+          par = starts
+          ,fn = likelihood
+          ,x  = x
+          ,method  = "SANN"
+          ,hessian = TRUE
+    )
+  )
+}
+
 
 p4 <- goodness.fit(
   pdf = pdf_cotG
@@ -168,29 +202,78 @@ pdf_cosW <- function(par,x){
 }
 
 #         Cos Weibull- Cumulative distribution function.
+
 cdf_cosW <- function(par,x){
   alpha      = par[1]
   lambda     = par[2]
   1-cos((pi/2)*((1-exp(-(lambda*x)^alpha))))
 }
-p1=goodness.fit(pdf=pdf_cosW, cdf=cdf_cosW, starts =c(1, 1), data = x, method="S",  domain=c(0,Inf),mle=NULL)
-mle1=p1$mle
-aic1=p1$AIC
+
+starts <- c(1, 1)
+
+likelihood <- function(par, x){
+  -sum(log(pdf_cosW(par, x)))
+}
+
+opt1 <- optim(
+  par = starts
+  ,fn = likelihood
+  ,x = data
+  ,method = "SANN"
+  ,hessian = TRUE
+)
+
+p1 <- goodness.fit(
+  pdf = pdf_cosW
+  ,cdf = cdf_cosW
+  ,starts = c(1, 1)
+  ,data = x
+  ,method = "S"
+  ,domain = c(0, Inf)
+  ,mle = NULL
+)
+
+mle1 <- p1$mle
+
+aic1 <- p1$AIC
 #------------------------------------------------------------
 
 
 # Weibull - pdf distribution function.
-pdf_W <- function(par,x){
+pdf_W <- function(par, x){
   alpha      = par[1]
   lambda     = par[2]
   (alpha*lambda^(alpha)*x^(alpha-1))*exp(-(lambda*x)^alpha)
 }
+
 # Weibull- Cumulative distribution function.
-cdf_W <- function(par,x){
+cdf_W <- function(par, x){
   alpha      = par[1]
   lambda     = par[2]
   (1-exp(-(lambda*x)^alpha))
 }
+
+likelihood <- function(par, x){
+  -sum(log(pdf_W(par, x)))
+}
+
+opt2 <- optim(
+  par = starts
+  ,fn = likelihood
+  ,x = data
+  ,method = "SANN"
+  ,hessian = TRUE
+)
+
+p2 <- goodness.fit(
+  pdf = pdf_cosW
+  ,cdf = cdf_cosW
+  ,starts = c(1, 1)
+  ,data = x
+  ,method = "S"
+  ,domain = c(0, Inf)
+  ,mle = NULL
+)
 p2=goodness.fit(pdf=pdf_W, cdf=cdf_W,starts = c(1, 1), data = x, method="S", domain=c(0,1),mle=NULL)
 mle2=p2$mle
 aic2=p2$AIC
@@ -355,7 +438,7 @@ x <- c(115.14, 127.14,
 
 
 
-# Sin-Gumbel Weibull Poisson- pdf distribution function.
+# Sin-Gumbel Weibull Poisson - pdf distribution function.
 pdf_SinGumWp <- function(par,x){
   alpha   = par[1]
   beta    = par[2]
@@ -445,7 +528,7 @@ mle;aic;A;W
 
 
 
-# Cos-Gumbel Weibull Poisson- pdf distribution function.
+# Cos-Gumbel Weibull Poisson - pdf distribution function.
 pdf_CosGumWp <- function(par,x){
   alpha   = par[1]
   beta    = par[2]

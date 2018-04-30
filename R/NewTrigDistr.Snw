@@ -1,0 +1,38 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{New Trigonometric Distributions - List of Equations to Keep in Mind}
+
+\section{CotGumb}
+
+\section{Cos Weibull}
+
+\begin{verbatim}
+pdf_cotG <- function(par, x){
+
+  alpha      = par[1]
+  beta       = par[2]
+  
+  -(2/3)*pi*exp(-(exp(-(-x+alpha)/beta)*beta+alpha-x)/beta)*sin((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))/(beta*cos((1/3)*pi*(-1+exp(-exp(-(-x+alpha)/beta))))^2)
+}
+\end{verbatim}
+\begin{align}
+  pdf_{cotG}(x, \alpha, \beta) &= \frac{2\pi}{3}\sin\left(\frac{\pi}{3}\right)\frac{\exp\left(-\frac{x-\alpha-\beta e^{\frac{x-\alpha}{\beta}}}{\beta}\right)\left(\exp\left(-e^{-\frac{(-x+\alpha)}{\beta}}\right)-1\right)}{\left(\beta*\cos\left(\frac{\pi}{3}*(\exp(-e^{\left(-\frac{(-x+\alpha)}{\beta}\right)})-1)\right)\right)^2}
+\end{align}
+
+\section{Weibull}
+
+\section{EXPONENTIAL EXPONENTIATED}
+
+\section{Sin-Gumbel Weibull Poisson}
+
+\section{Cos-Gumbel Weibull Poisson}
+
+\section{HG1G2 exp and Weibull}
+
+
+
+
+\end{document}
